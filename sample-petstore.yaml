@@ -1,0 +1,428 @@
+openapi: 3.0.3
+info:
+  title: Petstore API
+  description: A sample API for testing the OpenAPI platform
+  version: 1.2.0
+  contact:
+    name: Petstore Support
+    email: support@petstore.example.com
+  license:
+    name: MIT
+
+servers:
+  - url: https://api.petstore.example.com/v1
+    description: Production
+  - url: https://sandbox.petstore.example.com/v1
+    description: Sandbox
+
+tags:
+  - name: pets
+    description: Manage pets
+  - name: owners
+    description: Manage owners
+
+paths:
+  /pets:
+    get:
+      tags: [pets]
+      summary: List all pets
+      operationId: listPets
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: species
+          in: query
+          description: Filter by species
+          required: false
+          schema:
+            type: string
+            enum: [dog, cat, bird, rabbit]
+      responses:
+        "200":
+          description: A list of pets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Pet"
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+              example:
+                data:
+                  - id: "pet_01"
+                    name: "Buddy"
+                    species: dog
+                    breed: "Golden Retriever"
+                    age: 3
+                    ownerId: "owner_01"
+                  - id: "pet_02"
+                    name: "Whiskers"
+                    species: cat
+                    breed: "Siamese"
+                    age: 5
+                    ownerId: "owner_02"
+                total: 2
+                page: 1
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    post:
+      tags: [pets]
+      summary: Register a new pet
+      operationId: createPet
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PetInput"
+            example:
+              name: "Max"
+              species: dog
+              breed: "Labrador"
+              age: 2
+              ownerId: "owner_03"
+      responses:
+        "201":
+          description: Pet created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  /pets/{petId}:
+    parameters:
+      - name: petId
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [pets]
+      summary: Get a pet by ID
+      operationId: getPet
+      responses:
+        "200":
+          description: Pet details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    patch:
+      tags: [pets]
+      summary: Update a pet
+      operationId: updatePet
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PetInput"
+      responses:
+        "200":
+          description: Updated pet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      tags: [pets]
+      summary: Delete a pet
+      operationId: deletePet
+      security:
+        - BearerAuth: []
+      responses:
+        "204":
+          description: Pet deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /pets/{petId}/vaccinations:
+    get:
+      tags: [pets]
+      summary: List vaccination records for a pet
+      operationId: listVaccinations
+      parameters:
+        - name: petId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Vaccination records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vaccination"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /owners:
+    get:
+      tags: [owners]
+      summary: List all owners
+      operationId: listOwners
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: A list of owners
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Owner"
+
+    post:
+      tags: [owners]
+      summary: Register a new owner
+      operationId: createOwner
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OwnerInput"
+            example:
+              name: "Jane Doe"
+              email: "jane@example.com"
+              phone: "+1-555-0100"
+      responses:
+        "201":
+          description: Owner created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Owner"
+
+  /owners/{ownerId}:
+    get:
+      tags: [owners]
+      summary: Get an owner by ID
+      operationId: getOwner
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: ownerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Owner details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Owner"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Pet:
+      type: object
+      required: [id, name, species, ownerId]
+      properties:
+        id:
+          type: string
+          readOnly: true
+          example: "pet_01"
+        name:
+          type: string
+          example: "Buddy"
+        species:
+          type: string
+          enum: [dog, cat, bird, rabbit]
+        breed:
+          type: string
+          example: "Golden Retriever"
+        age:
+          type: integer
+          minimum: 0
+          example: 3
+        ownerId:
+          type: string
+          example: "owner_01"
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+
+    PetInput:
+      type: object
+      required: [name, species, ownerId]
+      properties:
+        name:
+          type: string
+        species:
+          type: string
+          enum: [dog, cat, bird, rabbit]
+        breed:
+          type: string
+        age:
+          type: integer
+          minimum: 0
+        ownerId:
+          type: string
+
+    Vaccination:
+      type: object
+      properties:
+        id:
+          type: string
+        vaccine:
+          type: string
+          example: "Rabies"
+        administeredAt:
+          type: string
+          format: date
+          example: "2024-03-15"
+        nextDueAt:
+          type: string
+          format: date
+          example: "2025-03-15"
+        veterinarian:
+          type: string
+          example: "Dr. Smith"
+
+    Owner:
+      type: object
+      required: [id, name, email]
+      properties:
+        id:
+          type: string
+          readOnly: true
+          example: "owner_01"
+        name:
+          type: string
+          example: "Jane Doe"
+        email:
+          type: string
+          format: email
+          example: "jane@example.com"
+        phone:
+          type: string
+          example: "+1-555-0100"
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+
+    OwnerInput:
+      type: object
+      required: [name, email]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              issue:
+                type: string
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: BAD_REQUEST
+            message: "Invalid input"
+
+    Unauthorized:
+      description: Missing or invalid authentication
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: UNAUTHORIZED
+            message: "Authentication required"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: NOT_FOUND
+            message: "Resource not found"
+
+    UnprocessableEntity:
+      description: Validation errors
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: VALIDATION_ERROR
+            message: "Validation failed"
+            details:
+              - field: "email"
+                issue: "must be a valid email address"

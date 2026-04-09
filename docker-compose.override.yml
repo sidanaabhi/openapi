@@ -4,6 +4,8 @@
 services:
 
   backend:
+    build:
+      target: dev
     volumes:
       - ./backend/src:/app/src:delegated
     environment:
