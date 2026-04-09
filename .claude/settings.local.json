@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xxd \"c:/Users/ASHAMLA/OneDrive - Daimler Truck/Desktop/gen-ai/openapi/gateway/cmd/controlplane/main.go\")",
+      "Bash(xxd \"c:/Users/ASHAMLA/OneDrive - Daimler Truck/Desktop/gen-ai/openapi/backend/src/app.ts\")",
+      "Bash(xxd \"c:/Users/ASHAMLA/OneDrive - Daimler Truck/Desktop/gen-ai/openapi/portal-admin/src/main.tsx\")",
+      "Bash(xxd \"c:/Users/ASHAMLA/OneDrive - Daimler Truck/Desktop/gen-ai/openapi/portal-admin/vite.config.ts\")"
+    ]
+  }
+}

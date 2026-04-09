@@ -1,0 +1,31 @@
+# Local dev overrides — NOT for production
+# Relaxes healthcheck strictness and enables hot-reload mounts
+
+services:
+
+  backend:
+    volumes:
+      - ./backend/src:/app/src:delegated
+    environment:
+      NODE_ENV: development
+    command: npm run dev
+
+  portal-admin:
+    build:
+      target: dev
+    ports:
+      - "3002:3000"
+    volumes:
+      - ./portal-admin/src:/app/src:delegated
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+
+  portal-user:
+    build:
+      target: dev
+    ports:
+      - "3003:3000"
+    volumes:
+      - ./portal-user/src:/app/src:delegated
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
